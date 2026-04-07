@@ -36,10 +36,12 @@
 
 ;; function to calculate commissioned pay
 (define (calcCommission min gross commissionRate)
-  (if (> (* gross commissionRate) min)
-    min
-  (* gross commissionRate)
-))
+  (let ((comm (* gross commissionRate)))
+    (if (> comm min)
+        comm
+        min)))
+
+(define (wrap-lines lines) lines)
 
 (define (alterLinesInFatCollection lines modifier scalar)
   (filter
@@ -139,57 +141,113 @@
          (else #f))))
    lines))
 
+(define (compute-total lines)
+  (if (null? lines)
+      0
+      (+ (get-first-number (car lines))
+         (compute-total (cdr lines)))))
+
+(define (compute-max lines)
+  (if (null? lines)
+      -inf.0  ;; start with negative infinity
+      (let ((income (get-first-number (car lines))))
+        (max income (compute-max (cdr lines))))))
+
+(define (compute-min lines)
+  (if (null? lines)
+      +inf.0  ;; start with positive infinity
+      (let ((income (get-first-number (car lines))))
+        (min income (compute-min (cdr lines))))))
+
+(define (compute-avg lines)
+  (if (null? lines)
+      0
+      (/ (compute-total lines)
+         (length lines))))
+
+
+(define (get-first-number line)
+  (let ((type (car line))) ; line is a list: (hourly Viola Jennings 65 17.5)
+    (cond
+      ((eq? type 'salaried)
+       (cadddr line)) ; 4th element = salary
+      ((eq? type 'hourly)
+       (calcHourly (cadddr line) (cadddr (cdr line)))) ; 65 * 17.5
+      ((eq? type 'commission)
+       (calcCommission (cadddr line) (cadddr (cdr line)) (cadddr (cddr line))))
+      (else 0))))
+
 (define (perform . args)
   (call-with-current-continuation
    (lambda (return)
      (let ((n (length args)))
        (cond
+         ;; handle 2 or 4 arguments
          ((or (= n 2) (= n 4))
-          ;; first let* binds filename, action, employee-lines
           (let* ((filename (car args))
                  (action (cadr args))
-                 (employee-lines (read-all-lines filename)))
-            
-            ;; nested let binds symbols and altered lines
-            (let ((action-sym (if (string? action) (string->symbol action) action))
-                  (operator-sym (if (= n 4) (string->symbol (caddr args)) 'none))
-                  (altered-lines (if (= n 4)
-                                     (alterLinesInFatCollection employee-lines
-                                                               (if (string? (caddr args)) (string->symbol (caddr args)) (caddr args))
-                                                               (cadddr args))
-                                     employee-lines)))
+                 (employee-lines (read-all-lines filename))
+                 ;; wrap lines if only 2 arguments, else filter them
+                 (altered-lines (if (= n 2)
+                                    (wrap-lines employee-lines)
+                                    (alterLinesInFatCollection employee-lines
+                                                              (if (string? (caddr args))
+                                                                  (string->symbol (caddr args))
+                                                                  (caddr args))
+                                                              (cadddr args)))))
+            (let ((action-sym (if (string? action) (string->symbol action) action)))
               
-              (display "Lines read from file:") (newline)
-              (for-each (lambda (line)
-                          (display line)
-                          (newline))
-                        employee-lines)
+              ;; display original lines
+              ;;(display "Lines read from file:") (newline)
+              ;;(for-each (lambda (line)
+              ;;            (display line)
+              ;;            (newline))
+              ;;          employee-lines)
 
-              (display "Altered lines after applying filter:") (newline)
-              (for-each (lambda (line)
-                          (display line)
-                          (newline))
-                        altered-lines)
+              ;; display altered/wrapped lines
+              ;;(display "Altered lines after applying filter/wrap:") (newline)
+              ;;(for-each (lambda (line)
+              ;;            (display line)
+              ;;            (newline))
+              ;;          altered-lines)
 
+              ;; handle actions
               (cond
                 ((eq? action-sym 'print)
-                 (display "Printing altered lines done.") (newline))
+                 (display "PRINT.") (newline)(newline))
                 ((eq? action-sym 'count)
-                 (display "Count of altered lines: ")
+                 (display "There are ")
                  (display (length altered-lines))
-                 (newline))
-                ((eq? action-sym 'total) (display "TODO total") (newline))
-                ((eq? action-sym 'min)   (display "TODO min") (newline))
-                ((eq? action-sym 'max)   (display "TODO max") (newline))
-                ((eq? action-sym 'avg)   (display "TODO avg") (newline))
+                 (display " employees")
+                 (newline)(newline))
+                ((eq? action-sym 'total)
+                 (let ((total (compute-total altered-lines)))
+                   (display "Total payments is: $")
+                   (display total)
+                   (newline)(newline)))
+                ((eq? action-sym 'min)
+                 (let ((min (compute-min altered-lines)))
+                   (display "Minimum payment is: $")
+                   (display min)
+                   (newline)(newline)))
+                ((eq? action-sym 'max)
+                 (let ((max (compute-max altered-lines)))
+                   (display "Maximum payment is: $")
+                   (display max)
+                   (newline)(newline)))
+                ((eq? action-sym 'avg)
+                 (let ((total (compute-total altered-lines)))
+                   (display "Average payment per employee is $")
+                   (display (/ total (length altered-lines)))
+                   (newline)(newline)))
                 (else (display "Unknown action") (newline))))))
-
+         
          ;; invalid argument count
          (else
           (newline)
           (display "Usage: (perform employee_file action)") (newline)
           (display "or") (newline)
-          (display "Usage: (perform employee_file action operator threshold)") (newline)
+          (display "Usage: (perform employee_file action operator threshold)") (newline) (newline)
           (display "Valid actions: count print min max total avg") (newline)
-          (display "Valid operators: eq ne gt ge lt le") (newline)
+          (display "Valid operators: eq ne gt ge lt le") (newline) (newline)
           (return -1)))))))
