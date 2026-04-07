@@ -177,6 +177,73 @@
        (calcCommission (cadddr line) (cadddr (cdr line)) (cadddr (cddr line))))
       (else 0))))
 
+(define (earned-pay line)
+  (let ((type (car line)))
+    (cond
+      ((eq? type 'salaried) (cadddr line))                               ; 4th element = salary
+      ((eq? type 'hourly) (* (cadddr line) (caddddr line)))             ; rate * hours
+      ((eq? type 'commission) (calcCommission (cadddr line)             ; min
+                                             (caddddr line)            ; gross
+                                             (cadddddr line)))         ; rate
+      (else 0))))
+
+(define (print-lines lines)
+  (for-each
+   (lambda (line)
+     (let ((type (car line)))
+       (cond
+         ;; salaried employee
+         ((eq? type 'salaried)
+          (display "Salaried Employee: ")
+          (display (cadr line)) ; first name
+          (display " ")
+          (display (caddr line)) ; last name
+          (newline)
+          (display "Weekly Salary: $")
+          (display (cadddr line)) ; salary
+          (newline)
+          (display "Earned: $")
+          (display (earned-pay line))
+          (newline)(newline))
+
+         ;; hourly employee
+         ((eq? type 'hourly)
+          (display "Hourly Employee: ")
+          (display (cadr line))
+          (display " ")
+          (display (caddr line))
+          (newline)
+          (display "Hourly Rate: $")
+          (display (cadddr line))      ; rate
+          (display ", Hours Worked: ")
+          (display (caddddr line))     ; hours
+          (newline)
+          (display "Earned: $")
+          (display (earned-pay line))
+          (newline)(newline))
+
+         ;; commissioned employee
+         ((eq? type 'commission)
+          (display "Commission Employee: ")
+          (display (cadr line))
+          (display " ")
+          (display (caddr line))
+          (newline)
+          (display "Min: $")
+          (display (cadddr line))
+          (display ", Gross Sales: $")
+          (display (caddddr line))
+          (display ", Rate: ")
+          (display (cadddddr line))
+          (newline)
+          (display "Earned: $")
+          (display (earned-pay line))
+          (newline)(newline))
+
+         (else
+          (display "Unknown employee type") (newline)))))
+   lines))
+
 (define (perform . args)
   (call-with-current-continuation
    (lambda (return)
@@ -214,7 +281,9 @@
               ;; handle actions
               (cond
                 ((eq? action-sym 'print)
-                 (display "PRINT.") (newline)(newline))
+                  ;; call the pretty-print function
+                  (print-lines altered-lines)
+                  (newline)(newline))
                 ((eq? action-sym 'count)
                  (display "There are ")
                  (display (length altered-lines))
