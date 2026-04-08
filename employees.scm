@@ -1,5 +1,3 @@
-;; employees.scm
-
 (define (caddddr x) (car (cdr (cdr (cdr (cdr x))))))
 (define (cadddddr x) (car (cdr (cdr (cdr (cdr (cdr x)))))))
 
@@ -167,12 +165,12 @@
 
 
 (define (get-first-number line)
-  (let ((type (car line))) ; line is a list: (hourly Viola Jennings 65 17.5)
+  (let ((type (car line))) ; line is a list
     (cond
       ((eq? type 'salaried)
-       (cadddr line)) ; 4th element = salary
+       (cadddr line)) ; 4th element is salary
       ((eq? type 'hourly)
-       (calcHourly (cadddr line) (cadddr (cdr line)))) ; 65 * 17.5
+       (calcHourly (cadddr line) (cadddr (cdr line))))
       ((eq? type 'commission)
        (calcCommission (cadddr line) (cadddr (cdr line)) (cadddr (cddr line))))
       (else 0))))
@@ -180,11 +178,11 @@
 (define (earned-pay line)
   (let ((type (car line)))
     (cond
-      ((eq? type 'salaried) (cadddr line))                               ; 4th element = salary
-      ((eq? type 'hourly) (* (cadddr line) (caddddr line)))             ; rate * hours
-      ((eq? type 'commission) (calcCommission (cadddr line)             ; min
-                                             (caddddr line)            ; gross
-                                             (cadddddr line)))         ; rate
+      ((eq? type 'salaried) (cadddr line))                      ; 4th element = salary
+      ((eq? type 'hourly) (* (cadddr line) (caddddr line)))     ; rate * hours
+      ((eq? type 'commission) (calcCommission (cadddr line)     ; min
+                                             (caddddr line)     ; gross
+                                             (cadddddr line)))  ; rate
       (else 0))))
 
 (define (print-lines lines)
@@ -195,12 +193,12 @@
          ;; salaried employee
          ((eq? type 'salaried)
           (display "Salaried employee: ")
-          (display (symbol->string (cadr line))) ; first name
+          (display (symbol->string (cadr line)))
           (display " ")
-          (display (symbol->string (caddr line))) ; last name
+          (display (symbol->string (caddr line)))
           (newline)
           (display "weekly salary: ")
-          (display-2decimal (cadddr line)) ; salary
+          (display-2decimal (cadddr line))
           (newline)
           (display "earned: $")
           (display-2decimal (earned-pay line))
@@ -214,9 +212,9 @@
           (display (symbol->string (caddr line)))
           (newline)
           (display "hours worked: ")
-          (display-2decimal (cadddr line))      ; rate
+          (display-2decimal (cadddr line))
           (display ", hourly rate: ")
-          (display-2decimal (caddddr line))     ; hours
+          (display-2decimal (caddddr line))
           (newline)
           (display "earned: $")
           (display-2decimal (earned-pay line))
@@ -268,6 +266,7 @@
                  (employee-lines (read-all-lines filename))
                  ;; wrap lines if only 2 arguments, else filter them
                  (altered-lines (if (= n 2)
+                                    ;; filter lines based on function call
                                     (wrap-lines employee-lines)
                                     (alterLinesInFatCollection employee-lines
                                                               (if (string? (caddr args))
@@ -275,25 +274,10 @@
                                                                   (caddr args))
                                                               (cadddr args)))))
             (let ((action-sym (if (string? action) (string->symbol action) action)))
-              
-              ;; display original lines
-              ;;(display "Lines read from file:") (newline)
-              ;;(for-each (lambda (line)
-              ;;            (display line)
-              ;;            (newline))
-              ;;          employee-lines)
-
-              ;; display altered/wrapped lines
-              ;;(display "Altered lines after applying filter/wrap:") (newline)
-              ;;(for-each (lambda (line)
-              ;;            (display line)
-              ;;            (newline))
-              ;;          altered-lines)
-
               ;; handle actions
               (cond
                 ((eq? action-sym 'print)
-                  ;; call the pretty-print function
+                  ;; call the pretty print function
                   (print-lines altered-lines))
                 ((eq? action-sym 'count)
                  (display "There are ")
