@@ -194,55 +194,67 @@
        (cond
          ;; salaried employee
          ((eq? type 'salaried)
-          (display "Salaried Employee: ")
-          (display (cadr line)) ; first name
+          (display "Salaried employee: ")
+          (display (symbol->string (cadr line))) ; first name
           (display " ")
-          (display (caddr line)) ; last name
+          (display (symbol->string (caddr line))) ; last name
           (newline)
-          (display "Weekly Salary: $")
-          (display (cadddr line)) ; salary
+          (display "weekly salary: ")
+          (display-2decimal (cadddr line)) ; salary
           (newline)
-          (display "Earned: $")
-          (display (earned-pay line))
+          (display "earned: $")
+          (display-2decimal (earned-pay line))
           (newline)(newline))
 
          ;; hourly employee
          ((eq? type 'hourly)
-          (display "Hourly Employee: ")
-          (display (cadr line))
+          (display "Hourly employee: ")
+          (display (symbol->string (cadr line)))
           (display " ")
-          (display (caddr line))
+          (display (symbol->string (caddr line)))
           (newline)
-          (display "Hourly Rate: $")
-          (display (cadddr line))      ; rate
-          (display ", Hours Worked: ")
-          (display (caddddr line))     ; hours
+          (display "hours worked: ")
+          (display-2decimal (caddddr line))     ; hours
+          (display ", hourly rate: ")
+          (display-2decimal (cadddr line))      ; rate
           (newline)
-          (display "Earned: $")
-          (display (earned-pay line))
+          (display "earned: $")
+          (display-2decimal (earned-pay line))
           (newline)(newline))
 
          ;; commissioned employee
          ((eq? type 'commission)
-          (display "Commission Employee: ")
-          (display (cadr line))
+          (display "Commission employee: ")
+          (display (symbol->string (cadr line)))
           (display " ")
-          (display (caddr line))
+          (display (symbol->string (caddr line)))
           (newline)
-          (display "Min: $")
-          (display (cadddr line))
-          (display ", Gross Sales: $")
-          (display (caddddr line))
-          (display ", Rate: ")
-          (display (cadddddr line))
+          (display "minimum salary: ")
+          (display-2decimal (cadddr line))
+          (display ", sales amount: ")
+          (display-2decimal (caddddr line))
+          (display ", commission rate: ")
+          (display-2decimal (* 100 (cadddddr line)))
+          (display "%")
           (newline)
           (display "Earned: $")
-          (display (earned-pay line))
+          (display-2decimal (earned-pay line))
           (newline)(newline))
 
          (else
           (display "Unknown employee type") (newline)))))
    lines))
+  
+(define (display-2decimal x)
+  (let* ((r (round (* x 100)))
+         (int-part (inexact->exact (quotient r 100)))
+         (frac-part (inexact->exact (modulo r 100))))
+    (display
+     (string-append (number->string int-part)
+                    "."
+                    (if (< frac-part 10)
+                        (string-append "0" (number->string frac-part))
+                        (number->string frac-part))))))
 
 (define (perform . args)
   (call-with-current-continuation
@@ -282,8 +294,7 @@
               (cond
                 ((eq? action-sym 'print)
                   ;; call the pretty-print function
-                  (print-lines altered-lines)
-                  (newline)(newline))
+                  (print-lines altered-lines))
                 ((eq? action-sym 'count)
                  (display "There are ")
                  (display (length altered-lines))
@@ -292,22 +303,22 @@
                 ((eq? action-sym 'total)
                  (let ((total (compute-total altered-lines)))
                    (display "Total payments is: $")
-                   (display total)
+                   (display-2decimal total)
                    (newline)(newline)))
                 ((eq? action-sym 'min)
                  (let ((min (compute-min altered-lines)))
                    (display "Minimum payment is: $")
-                   (display min)
+                   (display-2decimal min)
                    (newline)(newline)))
                 ((eq? action-sym 'max)
                  (let ((max (compute-max altered-lines)))
                    (display "Maximum payment is: $")
-                   (display max)
+                   (display-2decimal max)
                    (newline)(newline)))
                 ((eq? action-sym 'avg)
                  (let ((total (compute-total altered-lines)))
                    (display "Average payment per employee is $")
-                   (display (/ total (length altered-lines)))
+                   (display-2decimal (/ total (length altered-lines)))
                    (newline)(newline)))
                 (else (display "Unknown action") (newline))))))
          
