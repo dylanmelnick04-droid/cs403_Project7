@@ -214,9 +214,9 @@
           (display (symbol->string (caddr line)))
           (newline)
           (display "hours worked: ")
-          (display-2decimal (caddddr line))     ; hours
-          (display ", hourly rate: ")
           (display-2decimal (cadddr line))      ; rate
+          (display ", hourly rate: ")
+          (display-2decimal (caddddr line))     ; hours
           (newline)
           (display "earned: $")
           (display-2decimal (earned-pay line))
@@ -237,7 +237,7 @@
           (display-2decimal (* 100 (cadddddr line)))
           (display "%")
           (newline)
-          (display "Earned: $")
+          (display "earned: $")
           (display-2decimal (earned-pay line))
           (newline)(newline))
 
