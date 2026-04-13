@@ -147,13 +147,13 @@
 
 (define (compute-max lines)
   (if (null? lines)
-      -inf.0  ;; start with negative infinity
+      -100000000  ;; start with negative infinity
       (let ((income (get-first-number (car lines))))
         (max income (compute-max (cdr lines))))))
 
 (define (compute-min lines)
   (if (null? lines)
-      +inf.0  ;; start with positive infinity
+      100000000  ;; start with positive infinity
       (let ((income (get-first-number (car lines))))
         (min income (compute-min (cdr lines))))))
 
