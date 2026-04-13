@@ -30,7 +30,18 @@
 
 ;; function to calculate hourly pay
 (define (calcHourly pay hours)
-  (* pay hours))
+  (cond
+    ((<= hours 40)
+     (* pay hours))
+
+    ((<= hours 50)
+     (+ (* 40 pay)
+        (* (- hours 40) pay 1.5)))
+
+    (else
+     (+ (* 40 pay)
+        (* 10 pay 1.5)
+        (* (- hours 50) pay 2)))))
 
 ;; function to calculate commissioned pay
 (define (calcCommission min gross commissionRate)
@@ -56,8 +67,8 @@
                                 (cadddddr line))
                 scalar))
             ((eq? type 'hourly)
-             (< (calcHourly (cadddr line)
-                            (caddddr line))
+             (< (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar))
             (else #f)))
 
@@ -71,8 +82,8 @@
                                 (cadddddr line))
                 scalar))
             ((eq? type 'hourly)
-             (> (calcHourly (cadddr line)
-                            (caddddr line))
+             (> (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar))
             (else #f)))
 
@@ -86,8 +97,8 @@
                                 (cadddddr line))
                 scalar))
             ((eq? type 'hourly)
-             (<= (calcHourly (cadddr line)
-                            (caddddr line))
+             (<= (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar))
             (else #f)))
 
@@ -101,8 +112,8 @@
                                 (cadddddr line))
                 scalar))
             ((eq? type 'hourly)
-             (>= (calcHourly (cadddr line)
-                            (caddddr line))
+             (>= (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar))
             (else #f)))
 
@@ -116,8 +127,8 @@
                                 (cadddddr line))
                 scalar))
             ((eq? type 'hourly)
-             (= (calcHourly (cadddr line)
-                            (caddddr line))
+             (= (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar))
             (else #f)))
 
@@ -131,8 +142,8 @@
                                 (cadddddr line))
                 scalar)))
             ((eq? type 'hourly)
-             (not (= (calcHourly (cadddr line)
-                            (caddddr line))
+             (not (= (calcHourly (caddddr line)
+                            (cadddr line))
                 scalar)))
             (else #f)))
 
@@ -170,7 +181,7 @@
       ((eq? type 'salaried)
        (cadddr line)) ; 4th element is salary
       ((eq? type 'hourly)
-       (calcHourly (cadddr line) (cadddr (cdr line))))
+       (calcHourly (cadddr (cdr line)) (cadddr line)))
       ((eq? type 'commission)
        (calcCommission (cadddr line) (cadddr (cdr line)) (cadddr (cddr line))))
       (else 0))))
@@ -179,7 +190,21 @@
   (let ((type (car line)))
     (cond
       ((eq? type 'salaried) (cadddr line))                      ; 4th element = salary
-      ((eq? type 'hourly) (* (cadddr line) (caddddr line)))     ; rate * hours
+      ((eq? type 'hourly)
+        (let ((hours (cadddr line))
+              (rate (caddddr line)))
+          (cond
+            ((<= hours 40)
+              (* hours rate))
+
+            ((<= hours 50)
+              (+ (* 40 rate)
+                (* (- hours 40) rate 1.5)))
+
+            (else
+              (+ (* 40 rate)
+                (* 10 rate 1.5)
+                (* (- hours 50) rate 2))))))     ; rate * hours
       ((eq? type 'commission) (calcCommission (cadddr line)     ; min
                                              (caddddr line)     ; gross
                                              (cadddddr line)))  ; rate

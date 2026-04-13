@@ -1,6 +1,6 @@
 (load "employees.scm")
 (perform "employees.dat")
-(perform "employees.dat" "count")
+(perform "employees.dat" "print")
 (perform "employees.dat" "total")
 (perform "employees.dat" "avg")
 (perform "employees.dat" "min")
